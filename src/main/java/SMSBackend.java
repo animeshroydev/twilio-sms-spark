@@ -8,35 +8,21 @@ import static spark.Spark.get;
 import static spark.Spark.post;
 
 public class SMSBackend {
+    // Find your Account Sid and Auth Token at twilio.com/console
+    public static final String ACCOUNT_SID =
+            "ACf33ccf1ecb81c3b2bd806acd1cef7514";
+    public static final String AUTH_TOKEN =
+            "4826badc34fe1a0f8d77180e7bc0682e";
+
     public static void main(String[] args) {
+        Twilio.init(ACCOUNT_SID, AUTH_TOKEN);
 
-        //Heroku assigns different port each time, hence reading it from process.
-        ProcessBuilder process = new ProcessBuilder();
-        Integer port;
-        if (process.environment().get("PORT") != null) {
-            port = Integer.parseInt(process.environment().get("PORT"));
-        } else {
-            port = 4567;
-        }
-        Spark.port(port);
+        Message message = Message
+                .creator(new PhoneNumber("+8402815702"), // to
+                        new PhoneNumber("+12512502238"), // from
+                        "Where's Wallace?")
+                .create();
 
-
-        get("/", (req, res) -> "Hello, World");
-
-        TwilioRestClient client = new TwilioRestClient.Builder(System.getenv("TWILIO_ACCOUNT_SID"), System.getenv("TWILIO_AUTH_TOKEN")).build();
-
-        post("/sms", (req, res) -> {
-            String body = req.queryParams("Body");
-            String to = req.queryParams("To");
-            String from = System.getenv("TWILIO_NUMBER");
-
-            Message message = new MessageCreator(
-                    new PhoneNumber(to),
-                    new PhoneNumber(from),
-                    body).create(client);
-
-            return message.getSid();
-        });
-
+        System.out.println(message.getSid());
     }
 }
